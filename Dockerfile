@@ -26,5 +26,6 @@ RUN mvn -B package -Dmaven.test.skip=true && \
 FROM perftool/base:jdk17
 
 COPY --from=build /opt/perf/compile/perf-network.jar /opt/perf/perf-network.jar
+COPY docker-build /opt/perf
 
 CMD ["/usr/bin/dumb-init", "bash", "-vx","/opt/perf/scripts/start.sh"]
