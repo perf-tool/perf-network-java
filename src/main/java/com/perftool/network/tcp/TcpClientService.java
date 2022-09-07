@@ -48,7 +48,7 @@ public class TcpClientService {
                         }
                     });
             List<Channel> channelList = new ArrayList<>();
-            for (int i = 0; i < clientConfig.getConnNum(); i++) {
+            for (int i = 0; i < 10_000; i++) {
                 Channel channel = bootstrap.connect(clientConfig.getHost(), clientConfig.getPort()).sync().channel();
                 new TcpClientThread(clientConfig, channel).start();
                 channelList.add(channel);
