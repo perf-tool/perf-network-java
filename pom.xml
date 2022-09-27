@@ -40,7 +40,7 @@
         <!-- plugin -->
         <checkstyle-plugin.version>3.2.0</checkstyle-plugin.version>
         <lombok.version>1.18.24</lombok.version>
-        <puppycrawl.version>10.3.3</puppycrawl.version>
+        <puppycrawl.version>10.3.4</puppycrawl.version>
     </properties>
 
     <dependencies>
