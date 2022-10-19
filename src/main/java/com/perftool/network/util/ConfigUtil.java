@@ -7,7 +7,7 @@
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
@@ -21,6 +21,8 @@ package com.perftool.network.util;
 
 import com.perftool.network.config.ClientConfig;
 import com.perftool.network.config.ServerConfig;
+import com.perftool.network.trace.mongo.MongoConfig;
+import com.perftool.network.trace.redis.RedisConfig;
 
 public class ConfigUtil {
 
@@ -30,7 +32,7 @@ public class ConfigUtil {
         clientConfig.setPort(EnvUtil.getInt("CLIENT_PORT", 5678));
         clientConfig.setConnNum(EnvUtil.getInt("CLIENT_CONN_NUM", 10));
         clientConfig.setTickPerConnMs(EnvUtil.getInt("CLIENT_TICK_PER_CONN_MS", 1000));
-        clientConfig.setPacketSize(EnvUtil.getInt("CLIENT_PACKET_SIZE", 1024));
+        clientConfig.setPacketSize(EnvUtil.getInt("CLIENT_PACKET_SIZE", 10));
         return clientConfig;
     }
 
@@ -39,6 +41,34 @@ public class ConfigUtil {
         serverConfig.setHost(EnvUtil.getString("SERVER_HOST", "0.0.0.0"));
         serverConfig.setPort(EnvUtil.getInt("SERVER_PORT", 5678));
         return serverConfig;
+    }
+
+    public static MongoConfig getMongoConfig() {
+        return MongoConfig.builder()
+                .mongodbHost(EnvUtil.getString("MONGODB_HOST", "localhost"))
+                .mongodbPort(EnvUtil.getInt("MONGODB_PORT", 27017))
+                .mongodbUsername(EnvUtil.getString("MONGODB_USERNAME", ""))
+                .mongodbPassword(EnvUtil.getString("MONGODB_PASSWORD", ""))
+                .mongodbDatabaseName(EnvUtil.getString("MONGODB_DATABASE_NAME", "trace_database1"))
+                .mongodbCollectionName(EnvUtil.getString("MONGODB_COLLECT_NAME", "trace_collect"))
+                .build();
+
+    }
+
+    public static RedisConfig getRedisConfig() {
+        return RedisConfig.builder()
+                .database(EnvUtil.getInt("REDIS_DATABASE", 0))
+                .clusterNodeUrl(EnvUtil.getString("REDIS_CLUSTER_NODES_URL", "localhost:6379"))
+                .password(EnvUtil.getString("REDIS_PASSWORD", ""))
+                .user(EnvUtil.getString("REDIS_USER", ""))
+                .timeout(EnvUtil.getInt("REDIS_TIMEOUT_SECONDS", 15))
+                .shutDownTimeout(EnvUtil.getInt("LETTUCE_SHUTDOWN_TIMEOUT_SECONDS", 100))
+                .maxIdle(EnvUtil.getInt("LETTUCE_POOL_MAX_IDLE", 10))
+                .minIdle(EnvUtil.getInt("LETTUCE_POOL_MIN_IDLE", 5))
+                .maxActive(EnvUtil.getInt("LETTUCE_POOL_MAX_ACTIVE", -1))
+                .redisClusterEnable(EnvUtil.getBoolean("REDIS_CLUSTER_ENABLE", true))
+                .dataSize(EnvUtil.getInt("DATA_SIZE", 1024))
+                .build();
     }
 
 }

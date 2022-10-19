@@ -20,6 +20,7 @@
 package com.perftool.network.tcp;
 
 import com.perftool.network.config.ClientConfig;
+import com.perftool.network.trace.TraceReporter;
 import com.perftool.network.util.EventLoopUtil;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
@@ -33,7 +34,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class TcpClientService {
-    public static void run(ClientConfig clientConfig) throws Exception {
+    public static void run(ClientConfig clientConfig, TraceReporter traceReporter) throws Exception {
         EventLoopGroup group = EventLoopUtil.newEventLoopGroup();
         try {
             Bootstrap bootstrap = new Bootstrap();
@@ -50,7 +51,7 @@ public class TcpClientService {
             List<Channel> channelList = new ArrayList<>();
             for (int i = 0; i < 10_000; i++) {
                 Channel channel = bootstrap.connect(clientConfig.getHost(), clientConfig.getPort()).sync().channel();
-                new TcpClientThread(clientConfig, channel).start();
+                new TcpClientThread(clientConfig, channel, traceReporter).start();
                 channelList.add(channel);
             }
             for (Channel channel : channelList) {
