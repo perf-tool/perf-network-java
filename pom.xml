@@ -41,7 +41,7 @@
         <jackson.version>2.13.4.2</jackson.version>
         <log4j2.version>2.19.0</log4j2.version>
         <netty.version>4.1.84.Final</netty.version>
-        <lettuce-core.version>6.1.9.RELEASE</lettuce-core.version>
+        <lettuce-core.version>6.2.1.RELEASE</lettuce-core.version>
         <!-- plugin -->
         <checkstyle-plugin.version>3.2.0</checkstyle-plugin.version>
         <lombok.version>1.18.24</lombok.version>
