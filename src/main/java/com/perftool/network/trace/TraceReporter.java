@@ -19,8 +19,10 @@
 
 package com.perftool.network.trace;
 
+import io.github.perftool.trace.module.TraceBean;
+
 public interface TraceReporter {
 
-    void reportTrace(TraceBean traceBean, String commType);
+    void reportTrace(TraceBean traceBean);
 
 }

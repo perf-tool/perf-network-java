@@ -25,9 +25,9 @@ import com.mongodb.MongoCredential;
 import com.mongodb.ServerAddress;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
-import com.perftool.network.trace.TraceBean;
 import com.perftool.network.trace.TraceReporter;
 import com.perftool.network.util.ConfigUtil;
+import io.github.perftool.trace.module.TraceBean;
 import org.bson.Document;
 
 import java.util.ArrayList;
@@ -59,13 +59,12 @@ public class MongoClientImpl implements TraceReporter {
     }
 
     @Override
-    public void reportTrace(TraceBean traceBean, String commType) {
+    public void reportTrace(TraceBean traceBean) {
         MongoDatabase database = createMongoDatabase();
         initCollection(database);
-        MongoCollection<Document> collection = database.getCollection(config.mongodbCollectionName + "_" + commType);
+        MongoCollection<Document> collection = database.getCollection(config.mongodbCollectionName);
         Document document = new Document("traceId", traceBean.getTraceId())
-                .append("createTime", traceBean.getCreateTime())
-                .append("spanId", traceBean.getSpanId());
+                .append("spanInfo", traceBean.getSpanInfo());
         collection.insertOne(document);
     }
 

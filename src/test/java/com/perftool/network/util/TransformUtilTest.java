@@ -17,19 +17,18 @@
  * under the License.
  */
 
-package com.perftool.network.trace;
+package com.perftool.network.util;
 
-import com.perftool.network.trace.module.SpanInfo;
-import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
-@Data
-@Setter
-@Getter
-public class TraceBean {
-    private String traceId;
-    private SpanInfo spanId;
-    private long createTime;
+@Slf4j
+public class TransformUtilTest {
 
+    @Test
+    public void testGetIncreaseNumber() {
+        int number = TransformUtil.getIncreaseNumber(999);
+        Assertions.assertEquals(number, 1);
+    }
 }

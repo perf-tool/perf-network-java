@@ -20,10 +20,12 @@
 package com.perftool.network.trace.redis;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.perftool.network.trace.TraceBean;
 import com.perftool.network.trace.TraceReporter;
 import com.perftool.network.trace.redis.functional.SyncCommandCallback;
 import com.perftool.network.util.ConfigUtil;
+import io.github.perftool.trace.module.SpanInfo;
+import io.github.perftool.trace.module.TraceBean;
+import io.github.perftool.trace.redis.RedisReportBean;
 import io.lettuce.core.KeyScanCursor;
 import io.lettuce.core.RedisClient;
 import io.lettuce.core.RedisURI;
@@ -32,10 +34,14 @@ import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.api.sync.RedisCommands;
 import io.lettuce.core.support.ConnectionPoolSupport;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.pool2.impl.GenericObjectPool;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.util.HashMap;
+import java.util.Map;
 
 @Slf4j
 public class RedisClientImpl implements TraceReporter {
@@ -92,13 +98,28 @@ public class RedisClientImpl implements TraceReporter {
     }
 
     @Override
-    public void reportTrace(TraceBean traceBean, String commType) {
+    public void reportTrace(TraceBean traceBean) {
         try {
+            String redisReportBeanStr = get(traceBean.getTraceId());
             ObjectMapper mapper = new ObjectMapper();
-            set(commType + "-traceid:" + traceBean.getTraceId(), mapper.writeValueAsString(traceBean));
+            if (StringUtils.isEmpty(redisReportBeanStr)) {
+                RedisReportBean reportBean = new RedisReportBean();
+                reportBean.setTraceId(traceBean.getTraceId());
+                Map<String, SpanInfo> map =  new HashMap<>();
+                map.put(traceBean.getSpanInfo().getSpanId(), traceBean.getSpanInfo());
+                reportBean.setMap(map);
+                set(traceBean.getTraceId(), mapper.writeValueAsString(reportBean));
+            } else {
+                RedisReportBean bean = mapper.readValue(
+                        redisReportBeanStr.getBytes(StandardCharsets.UTF_8), RedisReportBean.class);
+                Map<String, SpanInfo> map = bean.getMap();
+                map.put(traceBean.getSpanInfo().getSpanId(), traceBean.getSpanInfo());
+                bean.setMap(map);
+                set(traceBean.getTraceId(), mapper.writeValueAsString(bean));
+            }
         } catch (Exception e) {
          log.error("to json fail. traceId: {}, createTime: {}",
-                 traceBean.getTraceId(), traceBean.getCreateTime());
+                 traceBean.getTraceId(), traceBean.getTraceId());
         }
 
     }
