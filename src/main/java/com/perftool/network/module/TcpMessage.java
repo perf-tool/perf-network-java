@@ -19,7 +19,7 @@
 
 package com.perftool.network.module;
 
-import com.perftool.network.trace.TraceBean;
+import io.github.perftool.trace.module.TraceBean;
 import lombok.Data;
 
 @Data

@@ -17,4 +17,20 @@
  * under the License.
  */
 
-package com.perftool.network.trace.module;
+package com.perftool.network.util;
+
+import java.util.concurrent.atomic.AtomicInteger;
+
+public class TransformUtil {
+
+    private static final AtomicInteger INCREASE = new AtomicInteger();
+
+    public static int getIncreaseNumber(int maxNumber) {
+        return INCREASE.accumulateAndGet(1, ((left, right) -> {
+            int val = left + right;
+            return maxNumber < val ? 0 : val;
+        }));
+
+    }
+
+}

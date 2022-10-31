@@ -22,19 +22,20 @@ package com.perftool.network.tcp;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.util.concurrent.RateLimiter;
 import com.perftool.network.config.ClientConfig;
-import com.perftool.network.constant.PerfnConst;
 import com.perftool.network.module.TcpMessage;
-import com.perftool.network.trace.TraceBean;
 import com.perftool.network.trace.TraceReporter;
-import com.perftool.network.trace.module.SpanInfo;
 import com.perftool.network.util.RandomUtil;
+import com.perftool.network.util.TransformUtil;
+import io.github.perftool.trace.module.SpanInfo;
+import io.github.perftool.trace.module.TraceBean;
+import io.github.perftool.trace.util.Ipv4Util;
+import io.github.perftool.trace.util.StringTool;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Optional;
-import java.util.UUID;
 
 @Slf4j
 public class TcpClientThread extends Thread {
@@ -46,6 +47,8 @@ public class TcpClientThread extends Thread {
     private final RateLimiter rateLimiter;
 
     private final TraceReporter traceReporter;
+
+    private final String addr = Ipv4Util.getIp("eth0");
 
     public TcpClientThread(ClientConfig clientConfig, Channel channel, TraceReporter traceReporter) {
         this.clientConfig = clientConfig;
@@ -60,22 +63,31 @@ public class TcpClientThread extends Thread {
         while (true) {
             rateLimiter.acquire();
             try {
-                TcpMessage message = new TcpMessage();
-                TraceBean traceBean = new TraceBean();
-                ObjectMapper objectMapper = new ObjectMapper();
-                SpanInfo spanInfo = new SpanInfo();
-                traceBean.setTraceId(UUID.randomUUID().toString());
                 long createTime = System.currentTimeMillis();
-                traceBean.setCreateTime(createTime);
-                spanInfo.setReceiveTime(createTime);
-                traceBean.setSpanId(spanInfo);
+                StringBuilder builder = new StringBuilder();
+                String[] ips = addr.split("\\.");
+                for (String ip : ips) {
+                    builder.append(StringTool.fixedLen(ip, 3));
+                }
+                String tranceId = String.format("%s-%s-%s",
+                        createTime,
+                        builder,
+                        TransformUtil.getIncreaseNumber(999));
+                TraceBean traceBean = new TraceBean();
+                traceBean.setTraceId(tranceId);
+                SpanInfo spanInfo = new SpanInfo();
+                spanInfo.setSpanId(tranceId);
+                traceBean.setSpanInfo(spanInfo);
+
+                TcpMessage message = new TcpMessage();
                 message.setTcpHeader(traceBean);
                 message.setTcpContent(RandomUtil.randomStr(clientConfig.getPacketSize()));
+                ObjectMapper objectMapper = new ObjectMapper();
                 byte[] bytes = objectMapper.writeValueAsBytes(message);
                 ByteBuf byteBuf = Unpooled.wrappedBuffer(bytes);
                 this.channel.writeAndFlush(byteBuf).addListener(future -> {
                     if (Optional.ofNullable(traceReporter).isPresent()) {
-                        traceReporter.reportTrace(traceBean, PerfnConst.COMM_TYPE_CLIENT);
+                        traceReporter.reportTrace(traceBean);
                     }
                     if (!future.isSuccess()) {
                         log.error("send msg error", future.cause());

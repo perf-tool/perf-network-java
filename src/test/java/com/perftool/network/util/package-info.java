@@ -17,14 +17,4 @@
  * under the License.
  */
 
-package com.perftool.network.trace.module;
-
-import lombok.Getter;
-import lombok.Setter;
-
-@Setter
-@Getter
-public class SpanInfo {
-    private long receiveTime;
-
-}
+package com.perftool.network.util;

@@ -20,14 +20,16 @@
 package com.perftool.network.tcp;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.perftool.network.constant.PerfnConst;
 import com.perftool.network.module.TcpMessage;
-import com.perftool.network.trace.TraceBean;
 import com.perftool.network.trace.TraceReporter;
-import com.perftool.network.trace.module.SpanInfo;
 import com.perftool.network.trace.mongo.MongoClientImpl;
 import com.perftool.network.trace.redis.RedisClientImpl;
 import com.perftool.network.util.EnvUtil;
+import com.perftool.network.util.TransformUtil;
+import io.github.perftool.trace.module.SpanInfo;
+import io.github.perftool.trace.module.TraceBean;
+import io.github.perftool.trace.util.Ipv4Util;
+import io.github.perftool.trace.util.StringTool;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
@@ -44,6 +46,7 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
 
     private static TraceReporter traceReporter = null;
 
+    private final  String addr = Ipv4Util.getIp("eth0");
     private static String traceType = EnvUtil.getString("TRACE_TYPE", "DUMMY");
 
     static {
@@ -61,15 +64,21 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
                 if (in.readableBytes() > 0) {
                     ObjectMapper objectMapper = new ObjectMapper();
                     TcpMessage tcpMessage = objectMapper.readValue(in.toString(CharsetUtil.UTF_8), TcpMessage.class);
-                    if (Optional.ofNullable(traceReporter).isPresent()) {
-                        TraceBean traceBean = new TraceBean();
-                        long createTime = System.currentTimeMillis();
-                        traceBean.setCreateTime(createTime);
+                    TraceBean traceBean = tcpMessage.getTcpHeader();
+                    if (Optional.ofNullable(traceBean).isPresent()) {
+                        StringBuilder builder = new StringBuilder();
+                        String[] ips = addr.split("\\.");
+                        for (String ip : ips) {
+                            builder.append(StringTool.fixedLen(ip, 3));
+                        }
+                        String spanId = String.format("%s-%s-%s",
+                                System.currentTimeMillis(),
+                                builder,
+                                TransformUtil.getIncreaseNumber(999));
                         SpanInfo spanInfo = new SpanInfo();
-                        spanInfo.setReceiveTime(createTime);
-                        traceBean.setSpanId(spanInfo);
-                        traceBean.setTraceId(tcpMessage.getTcpHeader().getTraceId());
-                        traceReporter.reportTrace(traceBean, PerfnConst.COMM_TYPE_SERVER);
+                        spanInfo.setSpanId(spanId);
+                        traceBean.setSpanInfo(spanInfo);
+                        traceReporter.reportTrace(traceBean);
                     }
                 }
             } catch (Exception e) {
