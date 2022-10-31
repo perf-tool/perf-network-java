@@ -23,12 +23,10 @@ import com.perftool.network.constant.PerfnConst;
 import com.perftool.network.metrics.MetricsHandler;
 import com.perftool.network.tcp.TcpClientService;
 import com.perftool.network.tcp.TcpServerService;
-import com.perftool.network.trace.TraceReporter;
-import com.perftool.network.trace.mongo.MongoClientImpl;
-import com.perftool.network.trace.redis.RedisClientImpl;
 import com.perftool.network.util.ConfigUtil;
-import com.perftool.network.util.EnvUtil;
 import com.sun.net.httpserver.HttpServer;
+import io.github.perftool.trace.report.ITraceReporter;
+import io.github.perftool.trace.report.ReportUtil;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
@@ -49,13 +47,7 @@ public class Perfn {
                 }
             }).start();
         }
-        String traceType = EnvUtil.getString("TRACE_TYPE", "DUMMY");
-        log.info("{} trace reporter.", traceType);
-        TraceReporter traceReporter = null;
-        switch (traceType) {
-            case "MONGO" -> traceReporter = new MongoClientImpl();
-            case "REDIS" -> traceReporter = new RedisClientImpl();
-        }
+        ITraceReporter traceReporter = ReportUtil.getReporter();
         if (PerfnConst.PROTOCOL_TYPE_TCP.equals(protocolType)) {
             if (PerfnConst.COMM_TYPE_CLIENT.equals(commType)) {
                 TcpClientService.run(ConfigUtil.getClientConfig(), traceReporter);

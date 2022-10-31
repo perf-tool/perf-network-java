@@ -19,62 +19,46 @@
 
 package com.perftool.network.tcp;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.perftool.network.module.TcpMessage;
-import com.perftool.network.trace.TraceReporter;
-import com.perftool.network.trace.mongo.MongoClientImpl;
-import com.perftool.network.trace.redis.RedisClientImpl;
-import com.perftool.network.util.EnvUtil;
-import com.perftool.network.util.TransformUtil;
 import io.github.perftool.trace.module.SpanInfo;
 import io.github.perftool.trace.module.TraceBean;
+import io.github.perftool.trace.report.ITraceReporter;
+import io.github.perftool.trace.report.ReportUtil;
+import io.github.perftool.trace.util.InboundCounter;
 import io.github.perftool.trace.util.Ipv4Util;
+import io.github.perftool.trace.util.JacksonUtil;
 import io.github.perftool.trace.util.StringTool;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
-import io.netty.util.CharsetUtil;
 import io.netty.util.ReferenceCountUtil;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.Optional;
+import java.nio.charset.StandardCharsets;
 
 @Slf4j
 @ChannelHandler.Sharable
 public class ServerHandler extends ChannelInboundHandlerAdapter {
 
-    private static TraceReporter traceReporter = null;
+    private static final InboundCounter inboundCounter = new InboundCounter(999);
 
-    private final  String addr = Ipv4Util.getIp("eth0");
-    private static String traceType = EnvUtil.getString("TRACE_TYPE", "DUMMY");
+    private static final ITraceReporter traceReporter = ReportUtil.getReporter();
 
-    static {
-        switch (traceType) {
-            case "MONGO" -> traceReporter = new MongoClientImpl();
-            case "REDIS" -> traceReporter = new RedisClientImpl();
-        }
-    }
+    private static final String formattedIp = StringTool.formatIp(Ipv4Util.getIp("eth0"));
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) {
-        if (msg instanceof ByteBuf) {
-            ByteBuf in = (ByteBuf) msg;
+        if (msg instanceof ByteBuf in) {
             try {
                 if (in.readableBytes() > 0) {
-                    ObjectMapper objectMapper = new ObjectMapper();
-                    TcpMessage tcpMessage = objectMapper.readValue(in.toString(CharsetUtil.UTF_8), TcpMessage.class);
+                    TcpMessage tcpMessage = JacksonUtil.toObject(in.toString(StandardCharsets.UTF_8), TcpMessage.class);
                     TraceBean traceBean = tcpMessage.getTcpHeader();
-                    if (Optional.ofNullable(traceBean).isPresent()) {
-                        StringBuilder builder = new StringBuilder();
-                        String[] ips = addr.split("\\.");
-                        for (String ip : ips) {
-                            builder.append(StringTool.fixedLen(ip, 3));
-                        }
+                    if (traceBean != null) {
                         String spanId = String.format("%s-%s-%s",
                                 System.currentTimeMillis(),
-                                builder,
-                                TransformUtil.getIncreaseNumber(999));
+                                formattedIp,
+                                inboundCounter.get());
                         SpanInfo spanInfo = new SpanInfo();
                         spanInfo.setSpanId(spanId);
                         traceBean.setSpanInfo(spanInfo);

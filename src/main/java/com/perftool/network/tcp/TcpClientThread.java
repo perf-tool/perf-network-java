@@ -19,16 +19,16 @@
 
 package com.perftool.network.tcp;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.util.concurrent.RateLimiter;
 import com.perftool.network.config.ClientConfig;
 import com.perftool.network.module.TcpMessage;
-import com.perftool.network.trace.TraceReporter;
 import com.perftool.network.util.RandomUtil;
-import com.perftool.network.util.TransformUtil;
 import io.github.perftool.trace.module.SpanInfo;
 import io.github.perftool.trace.module.TraceBean;
+import io.github.perftool.trace.report.ITraceReporter;
+import io.github.perftool.trace.util.InboundCounter;
 import io.github.perftool.trace.util.Ipv4Util;
+import io.github.perftool.trace.util.JacksonUtil;
 import io.github.perftool.trace.util.StringTool;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -40,17 +40,19 @@ import java.util.Optional;
 @Slf4j
 public class TcpClientThread extends Thread {
 
+    private static final InboundCounter inboundCounter = new InboundCounter(999);
+
+    private static final String formattedIp = StringTool.formatIp(Ipv4Util.getIp("eth0"));
+
     private final ClientConfig clientConfig;
 
     private final Channel channel;
 
     private final RateLimiter rateLimiter;
 
-    private final TraceReporter traceReporter;
+    private final ITraceReporter traceReporter;
 
-    private final String addr = Ipv4Util.getIp("eth0");
-
-    public TcpClientThread(ClientConfig clientConfig, Channel channel, TraceReporter traceReporter) {
+    public TcpClientThread(ClientConfig clientConfig, Channel channel, ITraceReporter traceReporter) {
         this.clientConfig = clientConfig;
         this.channel = channel;
         this.traceReporter = traceReporter;
@@ -64,15 +66,10 @@ public class TcpClientThread extends Thread {
             rateLimiter.acquire();
             try {
                 long createTime = System.currentTimeMillis();
-                StringBuilder builder = new StringBuilder();
-                String[] ips = addr.split("\\.");
-                for (String ip : ips) {
-                    builder.append(StringTool.fixedLen(ip, 3));
-                }
                 String tranceId = String.format("%s-%s-%s",
                         createTime,
-                        builder,
-                        TransformUtil.getIncreaseNumber(999));
+                        formattedIp,
+                        inboundCounter.get());
                 TraceBean traceBean = new TraceBean();
                 traceBean.setTraceId(tranceId);
                 SpanInfo spanInfo = new SpanInfo();
@@ -82,8 +79,7 @@ public class TcpClientThread extends Thread {
                 TcpMessage message = new TcpMessage();
                 message.setTcpHeader(traceBean);
                 message.setTcpContent(RandomUtil.randomStr(clientConfig.getPacketSize()));
-                ObjectMapper objectMapper = new ObjectMapper();
-                byte[] bytes = objectMapper.writeValueAsBytes(message);
+                byte[] bytes = JacksonUtil.toBytes(message);
                 ByteBuf byteBuf = Unpooled.wrappedBuffer(bytes);
                 this.channel.writeAndFlush(byteBuf).addListener(future -> {
                     if (Optional.ofNullable(traceReporter).isPresent()) {

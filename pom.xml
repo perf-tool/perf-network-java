@@ -38,7 +38,7 @@
         <junit-jupiter-api.version>5.9.0</junit-jupiter-api.version>
         <mongo-java-driver.version>3.12.11</mongo-java-driver.version>
         <mongodb-driver-sync.version>4.7.2</mongodb-driver-sync.version>
-        <perf-trace.version>0.0.1</perf-trace.version>
+        <perf-trace.version>0.0.4</perf-trace.version>
         <guava.version>31.1-jre</guava.version>
         <jackson.version>2.13.4.2</jackson.version>
         <log4j2.version>2.19.0</log4j2.version>
@@ -109,12 +109,6 @@
             <version>${commons-lang3.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter-api</artifactId>
-            <version>${junit-jupiter-api.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
             <groupId>org.mongodb</groupId>
             <artifactId>mongo-java-driver</artifactId>
             <version>${mongo-java-driver.version}</version>
@@ -128,6 +122,12 @@
             <groupId>io.github.perf-tool</groupId>
             <artifactId>perf-trace</artifactId>
             <version>${perf-trace.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
+            <version>${junit-jupiter-api.version}</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 

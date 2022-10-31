@@ -20,8 +20,8 @@
 package com.perftool.network.tcp;
 
 import com.perftool.network.config.ClientConfig;
-import com.perftool.network.trace.TraceReporter;
 import com.perftool.network.util.EventLoopUtil;
+import io.github.perftool.trace.report.ITraceReporter;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
@@ -34,7 +34,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class TcpClientService {
-    public static void run(ClientConfig clientConfig, TraceReporter traceReporter) throws Exception {
+    public static void run(ClientConfig clientConfig, ITraceReporter traceReporter) throws Exception {
         EventLoopGroup group = EventLoopUtil.newEventLoopGroup();
         try {
             Bootstrap bootstrap = new Bootstrap();
