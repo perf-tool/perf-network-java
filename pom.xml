@@ -35,7 +35,7 @@
         <!-- dependency -->
         <commons-pool2.version>2.11.1</commons-pool2.version>
         <commons-lang3.version>3.12.0</commons-lang3.version>
-        <junit-jupiter-api.version>5.9.0</junit-jupiter-api.version>
+        <junit-jupiter-api.version>5.9.1</junit-jupiter-api.version>
         <mongo-java-driver.version>3.12.11</mongo-java-driver.version>
         <mongodb-driver-sync.version>4.7.2</mongodb-driver-sync.version>
         <perf-trace.version>0.0.4</perf-trace.version>
