@@ -26,10 +26,9 @@ import com.perftool.network.util.RandomUtil;
 import io.github.perftool.trace.module.SpanInfo;
 import io.github.perftool.trace.module.TraceBean;
 import io.github.perftool.trace.report.ITraceReporter;
+import io.github.perftool.trace.report.ReportUtil;
 import io.github.perftool.trace.util.InboundCounter;
-import io.github.perftool.trace.util.Ipv4Util;
 import io.github.perftool.trace.util.JacksonUtil;
-import io.github.perftool.trace.util.StringTool;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
@@ -41,8 +40,6 @@ import java.util.Optional;
 public class TcpClientThread extends Thread {
 
     private static final InboundCounter inboundCounter = new InboundCounter(999);
-
-    private static final String formattedIp = StringTool.formatIp(Ipv4Util.getIp("eth0"));
 
     private final ClientConfig clientConfig;
 
@@ -65,11 +62,7 @@ public class TcpClientThread extends Thread {
         while (true) {
             rateLimiter.acquire();
             try {
-                long createTime = System.currentTimeMillis();
-                String tranceId = String.format("%s-%s-%s",
-                        createTime,
-                        formattedIp,
-                        inboundCounter.get());
+                String tranceId = String.format("%s-%d", ReportUtil.traceIdPrefix(), inboundCounter.get());
                 TraceBean traceBean = new TraceBean();
                 traceBean.setTraceId(tranceId);
                 SpanInfo spanInfo = new SpanInfo();

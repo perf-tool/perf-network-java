@@ -25,9 +25,7 @@ import io.github.perftool.trace.module.TraceBean;
 import io.github.perftool.trace.report.ITraceReporter;
 import io.github.perftool.trace.report.ReportUtil;
 import io.github.perftool.trace.util.InboundCounter;
-import io.github.perftool.trace.util.Ipv4Util;
 import io.github.perftool.trace.util.JacksonUtil;
-import io.github.perftool.trace.util.StringTool;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
@@ -45,8 +43,6 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
 
     private static final ITraceReporter traceReporter = ReportUtil.getReporter();
 
-    private static final String formattedIp = StringTool.formatIp(Ipv4Util.getIp("eth0"));
-
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) {
         if (msg instanceof ByteBuf in) {
@@ -55,10 +51,7 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
                     TcpMessage tcpMessage = JacksonUtil.toObject(in.toString(StandardCharsets.UTF_8), TcpMessage.class);
                     TraceBean traceBean = tcpMessage.getTcpHeader();
                     if (traceBean != null) {
-                        String spanId = String.format("%s-%s-%s",
-                                System.currentTimeMillis(),
-                                formattedIp,
-                                inboundCounter.get());
+                        String spanId = String.format("%s-%d", ReportUtil.traceIdPrefix(), inboundCounter.get());
                         SpanInfo spanInfo = new SpanInfo();
                         spanInfo.setSpanId(spanId);
                         traceBean.setSpanInfo(spanInfo);
