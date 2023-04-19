@@ -38,7 +38,7 @@
         <guava.version>31.1-jre</guava.version>
         <jackson.version>2.14.2</jackson.version>
         <junit-jupiter-api.version>5.9.2</junit-jupiter-api.version>
-        <lettuce-core.version>6.2.3.RELEASE</lettuce-core.version>
+        <lettuce-core.version>6.2.4.RELEASE</lettuce-core.version>
         <log4j2.version>2.20.0</log4j2.version>
         <mongo-java-driver.version>3.12.12</mongo-java-driver.version>
         <netty.version>4.1.89.Final</netty.version>
