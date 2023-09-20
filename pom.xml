@@ -46,7 +46,7 @@
         <perf-trace.version>0.0.9</perf-trace.version>
         <!-- plugin -->
         <checkstyle-plugin.version>3.3.0</checkstyle-plugin.version>
-        <lombok.version>1.18.28</lombok.version>
+        <lombok.version>1.18.30</lombok.version>
         <puppycrawl.version>10.12.2</puppycrawl.version>
     </properties>
 
